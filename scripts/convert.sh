@@ -28,6 +28,10 @@
 
 set -euo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=scripts/security-utils.sh
+source "$SCRIPT_DIR/security-utils.sh"
+
 # --- Colour helpers ---
 if [[ -t 1 && -z "${NO_COLOR:-}" && "${TERM:-}" != "dumb" ]]; then
   GREEN=$'\033[0;32m'; YELLOW=$'\033[1;33m'; RED=$'\033[0;31m'; BOLD=$'\033[1m'; RESET=$'\033[0m'
@@ -55,7 +59,6 @@ progress_bar() {
 }
 
 # --- Paths ---
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 OUT_DIR="$REPO_ROOT/integrations"
 TODAY="$(date +%Y-%m-%d)"
@@ -503,6 +506,9 @@ main() {
   local valid_tools=("antigravity" "gemini-cli" "opencode" "cursor" "aider" "windsurf" "openclaw" "qwen" "all")
   local valid=false
   for t in "${valid_tools[@]}"; do [[ "$t" == "$tool" ]] && valid=true && break; done
+  if [[ "$tool" != "all" ]]; then
+    validateAgentName "$tool" >/dev/null 2>&1 || { error "Unsafe tool name '$tool'"; exit 1; }
+  fi
   if ! $valid; then
     error "Unknown tool '$tool'. Valid: ${valid_tools[*]}"
     exit 1

@@ -35,6 +35,10 @@
 
 set -euo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=scripts/security-utils.sh
+source "$SCRIPT_DIR/security-utils.sh"
+
 # ---------------------------------------------------------------------------
 # Colours -- only when stdout supports color
 # ---------------------------------------------------------------------------
@@ -97,7 +101,6 @@ box_blank() { printf "  |%*s|\n" $BOX_INNER ''; }
 # ---------------------------------------------------------------------------
 # Paths
 # ---------------------------------------------------------------------------
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 INTEGRATIONS="$REPO_ROOT/integrations"
 
@@ -515,6 +518,7 @@ main() {
       err "Unknown tool '$tool'. Valid: ${ALL_TOOLS[*]}"
       exit 1
     fi
+    validateAgentName "$tool" >/dev/null 2>&1 || { err "Unsafe tool name '$tool'"; exit 1; }
   fi
 
   # Decide whether to show interactive UI
